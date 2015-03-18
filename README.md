@@ -1,0 +1,2 @@
+# stock
+Default repository
