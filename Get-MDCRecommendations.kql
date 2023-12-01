@@ -1,0 +1,24 @@
+// Get Security Center (Defender for Cloud) Recommendations
+securityresources
+	| where type == "microsoft.security/assessments"
+	| where trim(" ", tostring(properties.status.code)) == "Unhealthy"
+	| extend source = tostring(properties.resourceDetails.Source)
+	| extend policyDefinitionId = tolower(tostring(properties.metadata.policyDefinitionId))
+	| extend initiative0 = properties['statusPerInitiative'][0]['policyInitiativeName']
+	| extend initiative1 = properties['statusPerInitiative'][1]['policyInitiativeName']
+	| extend initiative2 = properties['statusPerInitiative'][2]['policyInitiativeName']
+	| extend initiative3 = properties['statusPerInitiative'][3]['policyInitiativeName']
+	| extend initiative4 = properties['statusPerInitiative'][4]['policyInitiativeName']
+	| extend categories = properties['metadata']['categories']
+	| extend displayName = properties['displayName']
+	| extend description = properties['metadata']['description']
+	| extend implementationEffort = properties['metadata']['implementationEffort']
+	| extend severity = properties['metadata']['severity']
+	| extend userImpact = properties['metadata']['userImpact']
+	| extend resourceId =
+		trim(" ", tolower(tostring(case(source =~ "azure", properties.resourceDetails.Id,
+										source =~ "aws", properties.resourceDetails.AzureResourceId,
+										source =~ "gcp", properties.resourceDetails.AzureResourceId,
+										extract("^(.+)/providers/Microsoft.Security/assessments/.+$",1,id)))))
+	| extend cause = trim(" ", tostring(properties.status.cause))
+	| extend assessmentKey = tostring(name)
